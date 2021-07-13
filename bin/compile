@@ -5,34 +5,45 @@
 
 ENV_DIR=$3
 
-if [[ -f $ENV_DIR/CUSTOM_SSH_KEY && -f $ENV_DIR/CUSTOM_SSH_KEY_HOSTS ]]; then
-
-  echo "" >&1
-
-  # Ensure we have an ssh folder
+function ensure_ssh_folder() {
   if [ ! -d ~/.ssh ]; then
     mkdir -p ~/.ssh
     chmod 700 ~/.ssh
   fi
+}
 
+function configure_ssh_key() {
   # Load the private key into custom_key file.
-  base64 --decode $ENV_DIR/CUSTOM_SSH_KEY > ~/.ssh/custom_key
+  echo $1 | base64 --decode > ~/.ssh/custom_key-$2
 
   # Change the permissions on the file to
   # be read-only for this user.
-  chmod 400 ~/.ssh/custom_key
+  chmod 400 ~/.ssh/custom_key-$2
 
-  # Split $CUSTOM_SSH_KEY_HOSTS
-  IFS=',' ;for element in `cat $ENV_DIR/CUSTOM_SSH_KEY_HOSTS`;
+  echo -e "Host $2\n"\
+          "  Hostname github.com\n" \
+          "  IdentityFile ~/.ssh/custom_key-$2\n"\
+          "  IdentitiesOnly yes\n"\
+          "  UserKnownHostsFile=/dev/null\n"\
+          "  StrictHostKeyChecking no"\
+          >> ~/.ssh/config
+}
+
+if [[ -f $ENV_DIR/CUSTOM_SSH_KEYS && -f $ENV_DIR/CUSTOM_SSH_KEY_HOSTS ]]; then
+
+  echo "" >&1
+
+  # Ensure we have an ssh folder
+  ensure_ssh_folder
+
+  IFS="," hosts=(`cat $ENV_DIR/CUSTOM_SSH_KEY_HOSTS`)
+  key_index=0
+  IFS=',' ;for base64_key in `cat $ENV_DIR/CUSTOM_SSH_KEYS`;
   do
-    echo -e "Host $element\n"\
-            "  IdentityFile ~/.ssh/custom_key\n"\
-            "  IdentitiesOnly yes\n"\
-            "  UserKnownHostsFile=/dev/null\n"\
-            "  StrictHostKeyChecking no"\
-            >> ~/.ssh/config
+    configure_ssh_key $base64_key ${hosts[$key_index]}
+    ((key_index++))
   done
 
-  echo "-----> Successfully added custom SSH key"
+  echo "-----> Successfully added custom SSH keys"
 
 fi
