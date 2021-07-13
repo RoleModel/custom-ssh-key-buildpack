@@ -13,17 +13,18 @@ function ensure_ssh_folder() {
 }
 
 function configure_ssh_key() {
+  key_file=~/.ssh/custom_key_$2
   # Load the private key into custom_key file.
-  echo $1 | base64 --decode > ~/.ssh/custom_key_$2
+  echo $1 | base64 --decode > $key_file
 
   # Change the permissions on the file to
   # be read-only for this user.
-  chmod 400 ~/.ssh/custom_key-$2
+  chmod 400 $key_file
 
   IFS=',' ;for host in `cat $ENV_DIR/CUSTOM_SSH_KEY_HOSTS`;
   do
     echo -e "Host $host\n"\
-            "  IdentityFile ~/.ssh/custom_key_$2\n"\
+            "  IdentityFile $key_file\n"\
             "  IdentitiesOnly yes\n"\
             "  UserKnownHostsFile=/dev/null\n"\
             "  StrictHostKeyChecking no"\
