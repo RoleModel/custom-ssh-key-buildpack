@@ -20,27 +20,29 @@ function configure_ssh_key() {
   # be read-only for this user.
   chmod 400 ~/.ssh/custom_key-$2
 
-  echo -e "Host $2\n"\
-          "  Hostname github.com\n" \
-          "  IdentityFile ~/.ssh/custom_key-$2\n"\
-          "  IdentitiesOnly yes\n"\
-          "  UserKnownHostsFile=/dev/null\n"\
-          "  StrictHostKeyChecking no"\
-          >> ~/.ssh/config
+  IFS=',' ;for host in `cat $ENV_DIR/CUSTOM_SSH_KEY_HOSTS`;
+  do
+    echo -e "Host $host\n"\
+            "  IdentityFile ~/.ssh/custom_key-$2\n"\
+            "  IdentitiesOnly yes\n"\
+            "  UserKnownHostsFile=/dev/null\n"\
+            "  StrictHostKeyChecking no"\
+            >> ~/.ssh/config
+  done
 }
 
-if [[ -f $ENV_DIR/CUSTOM_SSH_KEYS && -f $ENV_DIR/CUSTOM_SSH_KEY_HOSTS ]]; then
+if [[ -f $ENV_DIR/CUSTOM_SSH_KEYS && -f $ENV_DIR/CUSTOM_SSH_KEY_HOSTS && -f $ENV_DIR/CUSTOM_SSH_KEY_REPOSITORIES ]]; then
 
   echo "" >&1
 
   # Ensure we have an ssh folder
   ensure_ssh_folder
 
-  IFS="," hosts=(`cat $ENV_DIR/CUSTOM_SSH_KEY_HOSTS`)
+  IFS="," repositories=(`cat $ENV_DIR/CUSTOM_SSH_KEY_REPOSITORIES`)
   key_index=0
   IFS=',' ;for base64_key in `cat $ENV_DIR/CUSTOM_SSH_KEYS`;
   do
-    configure_ssh_key $base64_key ${hosts[$key_index]}
+    configure_ssh_key $base64_key ${repositories[$key_index]}
     ((key_index++))
   done
 
