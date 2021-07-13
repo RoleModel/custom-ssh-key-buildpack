@@ -4,10 +4,15 @@ Use *Custom SSH key buildpack* if you need to, for example, download a dependenc
 
 Based on [http://stackoverflow.com/a/29677091/3303182](http://stackoverflow.com/a/29677091/3303182).
 
+Modified from
+[simon0191/custom-ssh-key-buildpack](simon0191/custom-ssh-key-buildback) to
+allow multiple SSH keys since GitHub prohibits adding the same key as a deploy
+key on multiple repositories.
+
 ## Usage
 
 - Add the buildpack to your app:
-  `heroku buildpacks:add --index 1 https://github.com/simon0191/custom-ssh-key-buildpack`
+  `heroku buildpacks:add --index 1 https://github.com/RoleModel/custom-ssh-key-buildpack`
 
 - Generate a new SSH key (https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/)
 

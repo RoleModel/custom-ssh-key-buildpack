@@ -14,7 +14,7 @@ function ensure_ssh_folder() {
 
 function configure_ssh_key() {
   # Load the private key into custom_key file.
-  echo $1 | base64 --decode > ~/.ssh/custom_key-$2
+  echo $1 | base64 --decode > ~/.ssh/custom_key_$2
 
   # Change the permissions on the file to
   # be read-only for this user.
@@ -23,7 +23,7 @@ function configure_ssh_key() {
   IFS=',' ;for host in `cat $ENV_DIR/CUSTOM_SSH_KEY_HOSTS`;
   do
     echo -e "Host $host\n"\
-            "  IdentityFile ~/.ssh/custom_key-$2\n"\
+            "  IdentityFile ~/.ssh/custom_key_$2\n"\
             "  IdentitiesOnly yes\n"\
             "  UserKnownHostsFile=/dev/null\n"\
             "  StrictHostKeyChecking no"\
@@ -31,21 +31,20 @@ function configure_ssh_key() {
   done
 }
 
-if [[ -f $ENV_DIR/CUSTOM_SSH_KEYS && -f $ENV_DIR/CUSTOM_SSH_KEY_HOSTS && -f $ENV_DIR/CUSTOM_SSH_KEY_REPOSITORIES ]]; then
+if [[ -f $ENV_DIR/CUSTOM_SSH_KEYS && -f $ENV_DIR/CUSTOM_SSH_KEY_HOSTS ]]; then
 
   echo "" >&1
 
   # Ensure we have an ssh folder
   ensure_ssh_folder
 
-  IFS="," repositories=(`cat $ENV_DIR/CUSTOM_SSH_KEY_REPOSITORIES`)
-  key_index=0
+  key_index=1
   IFS=',' ;for base64_key in `cat $ENV_DIR/CUSTOM_SSH_KEYS`;
   do
-    configure_ssh_key $base64_key ${repositories[$key_index]}
+    configure_ssh_key $base64_key $key_index
     ((key_index++))
   done
 
-  echo "-----> Successfully added custom SSH keys"
+  echo "-----> Successfully added $((key_index - 1)) custom SSH keys"
 
 fi
